@@ -1,0 +1,71 @@
+# Player is an NBA player, like Alex Caruso or Facundo Campazzo
+type Player {
+  id: ID!
+  name: String!
+
+  recentPerformances: [PlayerPerformance!]!
+
+  team: Team # player might not have a team
+}
+
+# Team is an NBA team, like the Los Angeles Lakers
+type Team {
+  id: ID!
+  shortName: String! # ex: LAL
+  location: String! # ex: Los Angeles
+  name: String! # ex: Lakers
+  recentGames: GameConnection!
+  upcomingGames: GameConnection!
+
+  players: [Player!]!
+}
+
+# Game is an NBA game
+type Game {
+  id: ID!
+  time: Time!
+  homeTeam: Team!
+  awayTeam: Team!
+
+  # COVID necessitates this field, unfortunately
+  postponed: Boolean!
+
+  result: GameResult!
+}
+
+# GameResult contains info about the result of a Game
+type GameResult {
+  id: ID!
+  winner: Team
+
+  homeTeamPerformances: [PlayerPerformance!]!
+  awayTeamPerformances: [PlayerPerformance!]!
+}
+
+# PlayerPerformance contains info about how a Player performed in a specific Game
+type PlayerPerformance {
+  id: ID!
+  player: Player!
+  game: Game!
+
+  # Just track the basic stats for now
+  minutes: Int # null if DNP?
+  points: Int!
+  rebounds: Int!
+  assists: Int!
+  steals: Int!
+  blocks: Int!
+  turnovers: Int!
+}
+
+# Connections
+
+type GameConnection {
+  pageInfo: PageInfo!
+  edges: [GameEdge!]!
+}
+
+type GameEdge {
+  cursor: String!
+  node: Game!
+}

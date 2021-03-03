@@ -1,0 +1,57 @@
+# Contest is an instance of a daily competition for a specific League
+type Contest {
+  id: ID!
+  day: Time!
+  league: League!
+  winner: User
+  draft: ContestDraft!
+
+  entries: ContestEntryConnection!
+}
+
+# ContestDraft is the draft details for a specific Contest
+type ContestDraft {
+  id: ID!
+  picks: [ContestDraftPick!]!
+}
+
+# ContestDraftPick specifies the Player that a User picked in a round of a Draft
+type ContestDraftPick {
+  draft: ContestDraft!
+  user: User!
+  round: Int!
+  player: Player
+}
+
+# ContestEntry is a specific User's entry to a Contest. The entry contains the
+# players the user has selected
+type ContestEntry {
+  id: ID!
+  user: User!
+  contest: Contest!
+
+  totalPoints: Int!
+  players: [PlayerPerformance!]!
+}
+
+# Connections
+
+type ContestConnection {
+  pageInfo: PageInfo!
+  edges: [ContestEdge!]!
+}
+
+type ContestEdge {
+  cursor: String!
+  node: Contest!
+}
+
+type ContestEntryConnection {
+  pageInfo: PageInfo!
+  edges: [ContestEntryEdge!]!
+}
+
+type ContestEntryEdge {
+  cursor: String!
+  node: ContestEntry!
+}

@@ -1,0 +1,49 @@
+# A League is a collection of Users who can participate in daily Contests
+type League {
+  id: ID!
+  name: String!
+  description: String!
+  maxMembers: Int!
+
+  statWeights: StatWeights!
+  members: LeagueMemberConnection!
+
+  currentContests: ContestConnection!
+  previousContests: ContestConnection!
+}
+
+# StatWeights are multipliers for the various stats
+type StatWeights {
+  points: Int!
+  rebounds: Int!
+  assists: Int!
+  steals: Int!
+  blocks: Int!
+  turnovers: Int!
+}
+
+# Connections
+
+type LeagueConnection {
+  pageInfo: PageInfo!
+  edges: [LeagueEdge!]!
+}
+
+type LeagueEdge {
+  cursor: String!
+  node: League!
+}
+
+type LeagueMemberConnection {
+  pageInfo: PageInfo!
+  edges: [LeagueMemberEdge!]!
+}
+
+type LeagueMemberEdge {
+  cursor: String!
+  node: User!
+
+  # edge fields
+  isCommissioner: Boolean!
+  canInvite: Boolean!
+}

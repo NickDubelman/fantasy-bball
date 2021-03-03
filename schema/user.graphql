@@ -1,0 +1,10 @@
+type User {
+  id: ID!
+  name: String!
+  email: String!
+
+  joined: Time
+  lastActive: Time
+
+  leagues: LeagueConnection!
+}
