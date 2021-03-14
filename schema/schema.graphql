@@ -1,4 +1,18 @@
+# Time is a custom gqlgen scalar
 scalar Time
+
+# Relay spec requires that any node can be looked up by its globally unique ID
+interface Node {
+  id: ID!
+}
+
+type Query {
+  node(id: ID!): Node # Allows us to look up anything by ID
+}
+
+type Mutation {
+  root: Boolean # not actually used for anything
+}
 
 # PageInfo contains generic pagination info mandated by the Relay connection spec
 type PageInfo {
