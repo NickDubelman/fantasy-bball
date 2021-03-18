@@ -169,6 +169,7 @@ func handleOAuth2Callback(cfg *oauth2.Config, ginCtx *gin.Context) {
 
 	// TODO: Add the user to our database or update their information
 	userID := 0
+	log.Printf("Added %s (%s) to db\n", userInfo.Name, userInfo.Email)
 
 	// Generate an access token
 	accessToken, err := createAccessToken(ctx, userID, userInfo)
