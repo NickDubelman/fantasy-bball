@@ -13,6 +13,7 @@
 
 <script lang="ts">
   import { stores } from '@sapper/app'
+  import TailwindCSS from '../components/TailwindCSS.svelte'
 
   const { session } = stores()
 
@@ -23,6 +24,8 @@
     currPageEncoded = btoa(currPage)
   }
 </script>
+
+<TailwindCSS />
 
 <main>
   {#if $session.user}
