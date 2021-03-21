@@ -187,12 +187,9 @@ func handleOAuth2Callback(cfg *oauth2.Config, ginCtx *gin.Context) {
 		return
 	}
 
-	next := extractPath(ginCtx.Request.URL.Query().Get("state"))
-	if next == "" {
-		next = "/"
-	}
+	state := ginCtx.Request.URL.Query().Get("state")
 
-	nextURL, err := url.Parse(next)
+	nextURL, err := url.Parse("http://localhost:3000/login-callback")
 	if err != nil {
 		log.Println(err)
 		ginCtx.AbortWithError(http.StatusBadRequest, err)
@@ -204,6 +201,7 @@ func handleOAuth2Callback(cfg *oauth2.Config, ginCtx *gin.Context) {
 	query := nextURL.Query()
 	query.Add("accessToken", accessToken)
 	query.Add("refreshToken", refreshToken)
+	query.Add("state", state)
 	nextURL.RawQuery = query.Encode()
 
 	http.Redirect(ginCtx.Writer, ginCtx.Request, nextURL.String(), codeRedirect)

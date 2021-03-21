@@ -2,6 +2,7 @@ import sirv from 'sirv'
 import polka from 'polka'
 import compression from 'compression'
 import * as sapper from '@sapper/server'
+import session from 'express-session'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
 const { PORT, NODE_ENV } = process.env
@@ -24,7 +25,21 @@ if (dev) {
 }
 
 server
-  .use(compression({ threshold: 0 }), sirv('static', { dev }), sapper.middleware())
+  .use(
+    compression({ threshold: 0 }),
+    sirv('static', { dev }),
+    session({
+      secret: process.env.ACCESS_SECRET || 'Go Lakers',
+      resave: false,
+      saveUninitialized: false,
+    }),
+    (req, res, next) => {
+      return sapper.middleware({
+        // @ts-ignore
+        session: () => ({ user: !!req.session.accessToken }),
+      })(req, res, next)
+    }
+  )
   .listen(PORT, (err) => {
     if (err) console.log('error', err)
   })
