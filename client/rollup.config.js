@@ -99,7 +99,7 @@ export default {
         },
       }),
       svelte({
-        preprocess: sveltePreprocess({ sourceMap: dev }),
+        preprocess: sveltePreprocess({ sourceMap: dev, postcss: true }),
         compilerOptions: {
           dev,
           generate: 'ssr',
