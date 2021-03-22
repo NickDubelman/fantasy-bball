@@ -13,7 +13,6 @@
 
 <script lang="ts">
   import { stores } from '@sapper/app'
-  import TailwindCSS from '../components/TailwindCSS.svelte'
 
   const { session } = stores()
 
@@ -25,8 +24,6 @@
   }
 </script>
 
-<TailwindCSS />
-
 <main>
   {#if $session.user}
     <slot />
@@ -35,7 +32,7 @@
   {/if}
 </main>
 
-<style>
+<style lang="postcss">
   main {
     position: relative;
     max-width: 56em;
@@ -46,11 +43,6 @@
   }
 
   a {
-    background-color: #5f14a5;
-    color: white;
-    padding: 1em 1.4em;
-    text-decoration: none;
-    text-transform: uppercase;
-    border-radius: 4px;
+    @apply text-white text-xl py-3.5 px-6 rounded-md bg-purple-600;
   }
 </style>

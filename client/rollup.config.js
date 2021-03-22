@@ -9,6 +9,7 @@ import { terser } from 'rollup-plugin-terser'
 import sveltePreprocess from 'svelte-preprocess'
 import typescript from '@rollup/plugin-typescript'
 import config from 'sapper/config/rollup.js'
+import windiPreprocess from 'svelte-windicss-preprocess'
 
 import pkg from './package.json'
 
@@ -36,7 +37,16 @@ export default {
         },
       }),
       svelte({
-        preprocess: sveltePreprocess({ sourceMap: dev, postcss: true }),
+        preprocess: [
+          windiPreprocess.preprocess({
+            config: 'tailwind.config.js', // tailwind config file path
+            compile: true, // false: interpretation mode; true: compilation mode
+            prefix: 'windi-', // set compilation mode style prefix
+            globalPreflight: true, // set preflight style is global or scoped
+            globalUtility: true, // set utility style is global or scoped
+          }),
+          sveltePreprocess({ sourceMap: dev, postcss: true }),
+        ],
         compilerOptions: {
           dev,
           hydratable: true,
@@ -99,7 +109,16 @@ export default {
         },
       }),
       svelte({
-        preprocess: sveltePreprocess({ sourceMap: dev, postcss: true }),
+        preprocess: [
+          windiPreprocess.preprocess({
+            config: 'tailwind.config.js', // tailwind config file path
+            compile: true, // false: interpretation mode; true: compilation mode
+            prefix: 'windi-', // set compilation mode style prefix
+            globalPreflight: true, // set preflight style is global or scoped
+            globalUtility: true, // set utility style is global or scoped
+          }),
+          sveltePreprocess({ sourceMap: dev, postcss: true }),
+        ],
         compilerOptions: {
           dev,
           generate: 'ssr',
