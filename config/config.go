@@ -23,6 +23,8 @@ func init() {
 	}
 
 	c = Configuration{
+		AuthSecret:      getenv("ACCESS_SECRET", "Go Lakers! Very nice i like!"),
+		OAuthConfigPath: getenv("OAUTH_CONFIG_PATH", "oauth-config.json"),
 		Database: databaseConfiguration{
 			User:     getenv("BBALL_DB_USER", "root"),
 			Password: getenv("BBALL_DB_PASSWORD", ""),
@@ -41,7 +43,9 @@ func Get() Configuration {
 }
 
 type Configuration struct {
-	Database databaseConfiguration
+	AuthSecret      string
+	OAuthConfigPath string
+	Database        databaseConfiguration
 }
 
 type databaseConfiguration struct {

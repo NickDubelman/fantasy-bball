@@ -2,10 +2,10 @@ package auth
 
 import (
 	"context"
-	"os"
 	"strconv"
 	"time"
 
+	"github.com/NickDubelman/fantasy-bball/config"
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -32,11 +32,6 @@ func (ui UserInfo) ID() int {
 // refreshClaims represents the claims contained within a refresh token
 type refreshClaims struct {
 	jwt.StandardClaims
-}
-
-func init() {
-	// FIXME: this should be a secret
-	os.Setenv("ACCESS_SECRET", "my name a borat! very nice!")
 }
 
 // RefreshAccessToken takes a user's accessToken and their refreshToken and generates
@@ -92,7 +87,7 @@ func parseToken(tokenStr string, claims jwt.Claims) (*jwt.Token, error) {
 		tokenStr,
 		claims,
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("ACCESS_SECRET")), nil
+			return []byte(config.Get().AuthSecret), nil
 		},
 	)
 }
@@ -116,7 +111,7 @@ func createAccessToken(
 
 	return jwt.
 		NewWithClaims(jwt.SigningMethodHS256, claims).
-		SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+		SignedString([]byte(config.Get().AuthSecret))
 }
 
 // createRefreshToken takes a userID and creates a JWT refresh token
@@ -129,5 +124,5 @@ func createRefreshToken(userID int) (string, error) {
 
 	return jwt.
 		NewWithClaims(jwt.SigningMethodHS256, claims).
-		SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+		SignedString([]byte(config.Get().AuthSecret))
 }

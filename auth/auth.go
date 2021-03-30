@@ -8,9 +8,9 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 
+	"github.com/NickDubelman/fantasy-bball/config"
 	"github.com/NickDubelman/fantasy-bball/db"
 	"github.com/NickDubelman/fantasy-bball/db/user"
 	"github.com/gin-gonic/gin"
@@ -55,8 +55,7 @@ func (e TokenExpired) Error() string {
 
 // GoogleAuthFromConfig returns handlers that can be used for OAuth with Google
 func GoogleAuthFromConfig() gin.HandlerFunc {
-	configPath := os.Getenv("OAUTH_CONFIG_PATH")
-	config, err := getGoogleAuthConfig(configPath)
+	config, err := getGoogleAuthConfig(config.Get().OAuthConfigPath)
 	if err != nil {
 		log.Fatal(err)
 	}
