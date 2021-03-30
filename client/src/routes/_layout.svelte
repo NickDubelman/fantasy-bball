@@ -13,6 +13,7 @@
 
 <script lang="ts">
   import { stores } from '@sapper/app'
+  import Nav from '../components/Nav.svelte'
 
   const { session } = stores()
 
@@ -23,6 +24,8 @@
     currPageEncoded = btoa(currPage)
   }
 </script>
+
+<Nav />
 
 <main>
   {#if $session.user}
