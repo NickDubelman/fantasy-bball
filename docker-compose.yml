@@ -1,0 +1,12 @@
+services:
+  db:
+    image: mysql:8
+    ports:
+      - '3369:3306'
+      - '33690:33060'
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: fantasy
+    command: --default-authentication-plugin=mysql_native_password
+
+  # TODO: Redis for user sessions

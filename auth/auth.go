@@ -11,6 +11,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/NickDubelman/fantasy-bball/db"
+	"github.com/NickDubelman/fantasy-bball/db/user"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -22,6 +24,9 @@ const (
 
 	// PathCallback is the path to handle the callback from OAuth backend (Google)
 	PathCallback = "/auth/google/callback"
+
+	// PathError is redirected to when the user has an auth error
+	PathError = "/auth/error"
 
 	codeRedirect = http.StatusFound
 )
@@ -74,6 +79,9 @@ func GoogleAuthFromConfig() gin.HandlerFunc {
 			case PathCallback:
 				// User succesfully authenticated with Google
 				handleOAuth2Callback(config, c)
+
+			case PathError:
+				c.String(http.StatusInternalServerError, "Error logging in")
 
 			}
 		}
@@ -134,56 +142,105 @@ func AccessTokenFromContext(ctx context.Context) (string, error) {
 // picture from the Google userinfo endpoint. Lastly, we generate an access token and
 // a refresh token for the user (both are JWTs)
 func handleOAuth2Callback(cfg *oauth2.Config, ginCtx *gin.Context) {
+	handleErr := func(err error) {
+		log.Println(err)
+		ginCtx.Redirect(http.StatusFound, PathError)
+	}
+
 	code := ginCtx.Request.URL.Query().Get("code")
 	t, err := cfg.Exchange(oauth2.NoContext, code)
 	if err != nil {
-		log.Println(err)
-		ginCtx.AbortWithError(http.StatusBadRequest, err)
+		handleErr(err)
 		return
 	}
 
 	client := cfg.Client(oauth2.NoContext, t)
 	userinfo, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
 	if err != nil {
-		log.Println(err)
-		ginCtx.AbortWithError(http.StatusBadRequest, err)
+		handleErr(err)
 		return
 	}
 	defer userinfo.Body.Close()
 
 	data, err := ioutil.ReadAll(userinfo.Body)
 	if err != nil {
-		log.Println(err)
-		ginCtx.AbortWithError(http.StatusBadRequest, err)
+		handleErr(err)
 		return
 	}
 
 	userInfo := GoogleUserInfo{}
 	if err := json.Unmarshal(data, &userInfo); err != nil {
-		log.Println(err)
-		ginCtx.AbortWithError(http.StatusBadRequest, err)
+		handleErr(err)
 		return
 	}
 
 	ctx := ginCtx.Request.Context()
 
-	// TODO: Add the user to our database or update their information
-	userID := 0
-	log.Printf("Added %s (%s) to db\n", userInfo.Name, userInfo.Email)
+	dbClient := db.FromContext(ctx)
+	if dbClient == nil {
+		err := fmt.Errorf("could not retrieve db client from context")
+		handleErr(err)
+		return
+	}
+
+	// Check if the user exists in our database
+	var userID int
+
+	authUser, err := dbClient.User.
+		Query().
+		Where(
+			user.Email(userInfo.Email),
+		).
+		Only(ctx)
+
+	if err != nil {
+		if _, notFoundErr := err.(*db.NotFoundError); notFoundErr {
+			// If user that is logging in is not yet in our db, add them
+			authUser, err := dbClient.User.
+				Create().
+				SetName(userInfo.Name).
+				SetEmail(userInfo.Email).
+				SetPicture(userInfo.Picture).
+				Save(ctx)
+			if err != nil {
+				log.Println(err)
+				ginCtx.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
+
+			userID = authUser.ID
+		} else {
+			handleErr(err)
+			return
+		}
+	}
+
+	// If user that is logging in already exists in our db, just update their info
+	if authUser != nil {
+		userID = authUser.ID
+		_, err = authUser.
+			Update().
+			SetName(userInfo.Name).
+			SetPicture(userInfo.Picture).
+			SetLastActive(time.Now()).
+			Save(ctx)
+		if err != nil {
+			handleErr(err)
+			return
+		}
+	}
 
 	// Generate an access token
 	accessToken, err := createAccessToken(ctx, userID, userInfo)
 	if err != nil {
-		log.Println(err)
-		ginCtx.AbortWithError(http.StatusBadRequest, err)
+		handleErr(err)
 		return
 	}
 
 	// Generate a refresh token
 	refreshToken, err := createRefreshToken(userID)
 	if err != nil {
-		log.Println(err)
-		ginCtx.AbortWithError(http.StatusBadRequest, err)
+		handleErr(err)
 		return
 	}
 
@@ -191,8 +248,7 @@ func handleOAuth2Callback(cfg *oauth2.Config, ginCtx *gin.Context) {
 
 	nextURL, err := url.Parse("http://localhost:3000/login-callback")
 	if err != nil {
-		log.Println(err)
-		ginCtx.AbortWithError(http.StatusBadRequest, err)
+		handleErr(err)
 		return
 	}
 
